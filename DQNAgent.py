@@ -3,6 +3,14 @@ import numpy as np
 import random
 from collections import deque
 
+
+@tf.keras.utils.register_keras_serializable()
+def mask_q_values(inputs):
+    """Aplica el enmascaramiento a los Q-values para invalidar acciones no permitidas."""
+    q_values, mask = inputs
+    return q_values * mask - 1e6 * (1 - mask)
+
+
 class DQNAgent:
     def __init__(self, 
                  state_shape=(9, 9), 
@@ -57,12 +65,11 @@ class DQNAgent:
         
         # Output Q-values
         q_values = tf.keras.layers.Dense(self.action_size, activation='linear')(dense2)
+
+        # Apply registered mask function
+        masked_q_values = tf.keras.layers.Lambda(mask_q_values)([q_values, mask_input])
         
-        # Apply mask to make invalid actions have very negative Q-values
-        masked_q_values = tf.keras.layers.Lambda(
-            lambda x: x[0] * x[1] - 1e6 * (1 - x[1])
-        )([q_values, mask_input])
-        
+
         # Create model
         model = tf.keras.Model(
             inputs=[board_input, rows_input, cols_input, boxes_input, mask_input],
@@ -177,7 +184,7 @@ class DQNAgent:
         
         return (row, col, num)
     
-    
+
     def encode_action(self, row, col, num):
         """Convert (row, col, num) to action index"""
         return row * 81 + col * 9 + (num - 1)
@@ -190,6 +197,7 @@ class DQNAgent:
     def load(self, filepath):
         self.model = tf.keras.models.load_model(filepath)
         self.update_target_model()
+
 
 
 

@@ -8,7 +8,8 @@ import os
 import matplotlib.pyplot as plt
 
 # Training parameters
-EPISODES = 100
+START_FROM = 1801
+EPISODES = 3000
 MAX_STEPS = 81
 BATCH_SIZE = 64
 UPDATE_TARGET_EVERY = 10  # Update target network every N episodes
@@ -23,15 +24,15 @@ os.makedirs('logs', exist_ok=True)
 puzzles = {
     'easy': [
         np.array([
-            [6, 9, 0, 1, 7, 0, 0, 0, 3],
-            [8, 0, 2, 0, 0, 0, 7, 0, 0],
-            [0, 5, 0, 2, 4, 0, 0, 0, 0],
-            [0, 6, 0, 4, 5, 1, 0, 0, 0],
-            [0, 0, 1, 7, 3, 0, 0, 0, 2],
-            [0, 0, 0, 9, 0, 2, 5, 0, 6],
-            [0, 0, 0, 5, 0, 4, 0, 3, 0],
-            [0, 3, 0, 0, 2, 7, 9, 4, 8],
-            [0, 4, 6, 0, 0, 3, 2, 7, 5]
+            [0, 4, 2, 0, 0, 5, 0, 0, 6],
+            [1, 9, 7, 0, 0, 0, 0, 4, 0],
+            [5, 6, 0, 4, 0, 0, 1, 0, 9],
+            [8, 0, 1, 3, 0, 0, 2, 6, 0],
+            [9, 0, 0, 7, 1, 0, 4, 5, 0],
+            [0, 3, 2, 5, 6, 0, 0, 0, 0],
+            [0, 5, 3, 0, 2, 7, 0, 0, 0],
+            [4, 5, 9, 0, 0, 6, 0, 0, 0],
+            [0, 7, 6, 0, 0, 0, 0, 0, 8]
         ])
     ]
 }
@@ -41,7 +42,13 @@ puzzles = {
 env = SudokuEnv()
 agent = DQNAgent()
 
-# Metrics tracking
+#cargar modelo aterior
+agent.load("models/model_sudoku_ia_ep1800.keras") #modelo anterior
+agent.epsilon = 0.1
+print("✅ Modelo cargado, continuando entrenamiento...")
+
+
+#metrics tracking
 all_rewards = []
 valid_moves_per_episode = []
 completed_rows = []
@@ -88,8 +95,7 @@ def plot_metrics(episode):
     plt.savefig(f'logs/metrics_ep{episode}.png')
     plt.close()
 
-# Training loop
-for e in range(1, EPISODES + 1):
+for e in range(START_FROM, EPISODES + 1):
     # Select puzzle based on agent's performance
     # Initially start with easy puzzles, then gradually increase difficulty
     if e < 500:
@@ -190,7 +196,7 @@ for e in range(1, EPISODES + 1):
     
     # Save model periodically
     if e % SAVE_MODEL_EVERY == 0:
-        model_path = f"models/model_sudoku_ep{e}.keras"
+        model_path = f"models/model_sudoku_ia_ep{e}.keras"
 
         agent.save(model_path)
         

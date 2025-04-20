@@ -2,13 +2,17 @@ import numpy as np
 from DQNAgent import DQNAgent
 from SudokuEnv import SudokuEnv
 
-model_path = "models/sudoku_model_ep1000.h5"
+
+
+# Crear agente y cargar modelo
 agent = DQNAgent()
+
+# Ruta del modelo entrenado
+model_path = "models/model_sudoku_ia_ep1900.keras"
 agent.load(model_path)
+agent.epsilon = 0.0  # Desactiva exploración (solo acciones óptimas)
 
-#desactiva la exploración para que use solo las mejores decisiones
-agent.epsilon = 0.0
-
+# Puzzle a resolver
 puzzle = np.array([
     [0, 4, 0, 9, 0, 0, 3, 0, 8],
     [2, 0, 8, 0, 0, 4, 0, 6, 1],
@@ -21,10 +25,11 @@ puzzle = np.array([
     [0, 0, 7, 0, 9, 6, 8, 3, 0]
 ])
 
+# Crear entorno y cargar el puzzle
 env = SudokuEnv()
 state = env.reset(puzzle)
 
-# --- Ejecutar el modelo para resolver ---
+# Ejecutar el modelo para resolver el Sudoku
 MAX_STEPS = 81
 done = False
 steps = 0
@@ -35,10 +40,10 @@ env.render()
 while not done and steps < MAX_STEPS:
     mask = env.get_action_mask()
     constraints = env.get_number_constraints()
-    
+
     action_index = agent.act(state, mask, constraints)
     row, col, num = agent.decode_action(action_index)
-    
+
     state, reward, done, info = env.step((row, col, num))
     steps += 1
 
@@ -49,8 +54,8 @@ while not done and steps < MAX_STEPS:
 print("\n✅ Sudoku Final:")
 env.render()
 
+# Verifica si el Sudoku está correctamente resuelto
 if env.check_done():
     print("🎉 ¡Sudoku resuelto exitosamente!")
 else:
     print("⚠️ El modelo no pudo resolver el Sudoku completamente.")
-
